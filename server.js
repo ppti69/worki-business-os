@@ -114,7 +114,7 @@ const app=express();
 app.use(express.json({limit:"2mb"}));
 app.use(express.urlencoded({extended:true}));
 app.use(cookieSession({name:"worki_session",keys:[process.env.SESSION_SECRET||"dev-secret-change-me"],httpOnly:true,sameSite:"lax",secure:process.env.NODE_ENV==="production",maxAge:1000*60*60*12}));
-app.use(express.static(path.join(__dirname,"public")));
+app.use(express.static(__dirname));
 const upload=multer({dest:UPLOAD_DIR,limits:{fileSize:MAX_UPLOAD_MB*1024*1024}});
 
 function auth(req,res,next){if(!req.session?.user)return res.status(401).json({error:"로그인이 필요합니다."});const u=db.prepare("SELECT id,email,name,role,client_id,active FROM users WHERE id=?").get(req.session.user.id);if(!u||!u.active)return res.status(401).json({error:"비활성 계정입니다."});req.user=u;next()}
@@ -377,5 +377,5 @@ app.get("/api/results/:id/export",auth,async(req,res)=>{
 app.get("/api/usage",auth,(req,res)=>{const c=tenantClause(req);res.json(db.prepare(`SELECT * FROM ai_usage WHERE ${c.sql} ORDER BY created_at DESC LIMIT 500`).all(...c.params))});
 app.get("/api/audit",auth,admin,(req,res)=>res.json(db.prepare("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 500").all()));
 
-app.use((req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+app.use((req,res)=>res.sendFile(path.join(__dirname,"index.html")));
 app.listen(PORT,()=>console.log(`WORKI running on http://localhost:${PORT}`));
