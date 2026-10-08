@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: worki-business-os
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-6-luna
+      - key: DATA_DIR
+        value: /data
+      - key: MAX_UPLOAD_MB
+        value: 50
+      - key: ADMIN_EMAIL
+        value: admin@worki.local
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: worki-data
+      mountPath: /data
+      sizeGB: 5
