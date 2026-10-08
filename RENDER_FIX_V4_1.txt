@@ -1,0 +1,15 @@
+WORKI V4.1 Render Fix
+
+Render 오류:
+PathError [TypeError]: Missing parameter name at index 1: *
+
+원인:
+Express 5에서는 app.get("*", ...) 라우트 문법이 오류를 일으킬 수 있습니다.
+
+수정:
+app.get("*", ...)
+→ app.use((req,res)=>...)
+
+이 수정본의 파일 전체를 GitHub 저장소에 덮어쓴 뒤 Render에서
+Manual Deploy → Deploy latest commit
+을 실행하세요.

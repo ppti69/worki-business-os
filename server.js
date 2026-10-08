@@ -377,5 +377,5 @@ app.get("/api/results/:id/export",auth,async(req,res)=>{
 app.get("/api/usage",auth,(req,res)=>{const c=tenantClause(req);res.json(db.prepare(`SELECT * FROM ai_usage WHERE ${c.sql} ORDER BY created_at DESC LIMIT 500`).all(...c.params))});
 app.get("/api/audit",auth,admin,(req,res)=>res.json(db.prepare("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 500").all()));
 
-app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+app.use((req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 app.listen(PORT,()=>console.log(`WORKI running on http://localhost:${PORT}`));
