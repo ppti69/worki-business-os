@@ -1,4 +1,4 @@
-
+ 
 import express from "express";
 import cookieSession from "cookie-session";
 import bcrypt from "bcryptjs";
@@ -109,6 +109,35 @@ function seed(){
  }
 }
 seed();
+
+function syncAdminFromEnv(){
+  const adminEmail=(process.env.ADMIN_EMAIL||"").trim();
+  const adminPw=process.env.ADMIN_PASSWORD||"";
+  if(!adminEmail || !adminPw) return;
+
+  const passwordHash=bcrypt.hashSync(adminPw,10);
+  const existingByEmail=db.prepare("SELECT * FROM users WHERE email=?").get(adminEmail);
+  const existingAdmin=db.prepare("SELECT * FROM users WHERE role='admin' ORDER BY created_at ASC LIMIT 1").get();
+
+  if(existingByEmail){
+    db.prepare("UPDATE users SET password_hash=?,role='admin',active=1,name=COALESCE(NULLIF(name,''),'WORKI 관리자'),client_id=NULL WHERE id=?")
+      .run(passwordHash,existingByEmail.id);
+    console.log(`[WORKI] ADMIN_EMAIL 계정 동기화 완료: ${adminEmail}`);
+    return;
+  }
+
+  if(existingAdmin){
+    db.prepare("UPDATE users SET email=?,password_hash=?,role='admin',active=1,name=COALESCE(NULLIF(name,''),'WORKI 관리자'),client_id=NULL WHERE id=?")
+      .run(adminEmail,passwordHash,existingAdmin.id);
+    console.log(`[WORKI] 기존 관리자 계정을 Render 환경변수로 갱신: ${adminEmail}`);
+    return;
+  }
+
+  db.prepare("INSERT INTO users(id,email,password_hash,name,role,active,notes) VALUES(?,?,?,?,?,?,?)")
+    .run("U_ADMIN",adminEmail,passwordHash,"WORKI 관리자","admin",1,"Render 환경변수 동기화 관리자");
+  console.log(`[WORKI] 새 관리자 계정 생성: ${adminEmail}`);
+}
+syncAdminFromEnv();
 
 const app=express();
 app.use(express.json({limit:"2mb"}));
